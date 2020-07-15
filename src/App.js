@@ -1,42 +1,66 @@
-import React, { Component , Fragment } from 'react';
+import React, { Component } from 'react';
 import './App.css';
 import axios from 'axios';
 
+function GameDetails(props) {
+  console.log(props.value.user, "user")
+  return (
+    <div>
+      <img src={props.value.cover}/>
+      <div>{props.value.title}</div>
+      <div>{props.value.short_text}</div>
+      <div>By <a href={props.value.user.url}>{props.value.user.name}</a></div>
+      <div><a href={props.value.url}>Store page</a> || Download</div>
+    </div>
+  )
+}
 
-class App extends Component {
+class Roulette extends Component {
   constructor(props) {
     super(props);
-    this.state = { loading: true, data: []};
+    this.state = { data: [], currentGame: {}, rouletteText: "Roll", gameRendered: false};
   }
 
   componentDidMount() {
     axios.get('/blm-games.json')
       .then(response => response.data)
-      .then(json => this.setState({ loading: false, data: json.games}));
+      .then(json => this.setState({data: json.games}));
   }
 
-  renderGameList = data => {
+  generateIntFromRange = max => {
+    return Math.floor(Math.random() * max);
+  }
+  
+  renderRandomGame = () => {
     return (
-      <>
-      {console.log(data)}
-      {data.map((game,index) => (
-        <div key={index}>
-          <p>{game.title}</p>
-        </div>
-      ))}
-      </>
+      <GameDetails value={this.state.currentGame}/>
     )
   }
 
-  render() {
-    const {loading, data} = this.state;
-    
+  handleClick = () => {
+    const {data} = this.state;
+    let num = this.generateIntFromRange(data.length);
+    this.setState({currentGame: data[num], rouletteText: "Reroll", gameRendered: true});
+    console.log(this.state.currentGame);
+  }
+
+  render() {    
     return (
-      <Fragment>
-        {loading ? "Loading..." : this.renderGameList(data)}
-      </Fragment>
+      <div>
+        <p onClick={() => this.handleClick()}>{this.state.rouletteText}</p>
+        {!this.state.gameRendered ? "" : this.renderRandomGame()}
+      </div>
     )
   }
 }
 
-export default App;
+class Page extends Component {
+  render() {
+    return (
+      <Roulette/>
+    )
+  }
+}
+
+
+export default Page;
